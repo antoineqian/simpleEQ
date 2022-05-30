@@ -81,7 +81,11 @@ private:
         LowCut,
         Peak,
         HighCut
-    };      
+    };
+    
+    void updatePeakFilter(const ChainSettings& chainSettings);
+    using Coefficients = Filter::CoefficientsPtr;
+    static void updateCoefficients(Coefficients& old, const Coefficients& replacements); // TODO: const in function declarations
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessor)
 };
