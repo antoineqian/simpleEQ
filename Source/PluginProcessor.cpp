@@ -200,7 +200,7 @@ void SimpleEQAudioProcessor::setStateInformation (const void* data, int sizeInBy
 }
 
 Coefficients makePeakFilter(const ChainSettings& chainSettings,double sampleRate){
-    return      juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate,
+    return juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate,
                                                         chainSettings.peakFreq,
                                                         chainSettings.peakQuality,
                                                         juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
@@ -221,9 +221,7 @@ void updateCoefficients(Coefficients &old, const Coefficients &replacements){
 }
 
 void SimpleEQAudioProcessor::updateLowCutFilters(const ChainSettings &chainSettings){
-    auto lowCutCoefficients  = juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(chainSettings.lowCutFreq,
-                                                                                                        getSampleRate(),
-                                                                                                        2 * (chainSettings.lowCutSlope + 1));
+    auto lowCutCoefficients  = makeLowCutFilter(chainSettings, getSampleRate());
     
     auto& leftLowCut = leftChain.get<ChainPositions::LowCut>();
     updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings.lowCutSlope);
@@ -232,9 +230,8 @@ void SimpleEQAudioProcessor::updateLowCutFilters(const ChainSettings &chainSetti
 }
 
 void SimpleEQAudioProcessor::updateHighCutFilters(const ChainSettings &chainSettings){
-    auto highCutCoefficients  = juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(chainSettings.highCutFreq,
-                                                                                                        getSampleRate(),
-                                                                                                        2 * (chainSettings.highCutSlope + 1));
+    auto highCutCoefficients  =  makeHighCutFilter(chainSettings, getSampleRate());
+    
     auto& leftHighCut = leftChain.get<ChainPositions::HighCut>();
     updateCutFilter(leftHighCut, highCutCoefficients, chainSettings.highCutSlope);
     auto& rightHighCut = rightChain.get<ChainPositions::HighCut>();
