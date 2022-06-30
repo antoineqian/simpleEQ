@@ -9,7 +9,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& p) : audioProcessor(p) /** TODO: This syntax*/{
+ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& p) : audioProcessor(p){
 
     const auto& params = audioProcessor.getParameters();
     for (auto param: params){
@@ -117,7 +117,7 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
 }
 
 //==============================================================================
-SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor& p) // TODO: A Constructor apparently?
+SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor (SimpleEQAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p),
 responseCurveComponent(audioProcessor), peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider), peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
 peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
