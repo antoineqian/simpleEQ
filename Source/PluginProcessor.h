@@ -227,8 +227,8 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     juce::AudioProcessorValueTreeState apvts {*this, nullptr, "Parameters", createParameterLayout()};
     using BlockType = juce::AudioBuffer<float>;
-    SingleChannelSampleFifo <BlockType> leftChannelFifo { Channel::Left};
-    SingleChannelSampleFifo <BlockType> rightChannelFifo { Channel::Right};
+    SingleChannelSampleFifo<BlockType> leftChannelFifo { Channel::Left};
+    SingleChannelSampleFifo<BlockType> rightChannelFifo { Channel::Right};
 private:
     
     MonoChain leftChain, rightChain;
@@ -240,7 +240,7 @@ private:
     void updateHighCutFilters(const ChainSettings& chainSettings);
 
     void updateFilters();
-    
+    juce::dsp::Oscillator<float> osc;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleEQAudioProcessor)
 };

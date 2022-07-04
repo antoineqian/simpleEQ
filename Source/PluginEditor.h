@@ -143,6 +143,19 @@ private:
     juce::String suffix;
 };
 
+struct PathProducer {
+    PathProducer(SingleChannelSampleFifo<SimpleEQAudioProcessor::BlockType>&);
+    void process(juce::Rectangle<float> fftBounds, double sampleRate);
+    juce::Path getPath() {return leftChannelFFTPath;}
+private:
+    SingleChannelSampleFifo<SimpleEQAudioProcessor::BlockType>* leftChannelFifo;
+    juce::AudioBuffer<float> monoBuffer;
+    
+    FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
+    AnalyzerPathGenerator<juce::Path> pathProducer;
+    juce::Path leftChannelFFTPath;
+};
+
 struct ResponseCurveComponent : juce::Component, juce::AudioProcessorParameter::Listener, juce::Timer{
     ResponseCurveComponent(SimpleEQAudioProcessor&);
     ~ResponseCurveComponent();
@@ -164,14 +177,7 @@ private:
     juce::Rectangle<int> getRenderArea();
     juce::Rectangle<int> getAnalysisArea();
     
-    SingleChannelSampleFifo<SimpleEQAudioProcessor::BlockType>* leftChannelFifo;
-//    SingleChannelSampleFifo<SimpleEQAudioProcessor::BlockType>* rightChannelFifo;
-    juce::AudioBuffer<float> monoBuffer;
-    
-    FFTDataGenerator<std::vector<float>> leftChannelFFTDataGenerator;
-    AnalyzerPathGenerator<juce::Path> pathProducer;
-    juce::Path leftChannelFFTPath;
-    
+    PathProducer leftPathProducer, rightPathProducer;
 };
 
 class SimpleEQAudioProcessorEditor  : public juce::AudioProcessorEditor
