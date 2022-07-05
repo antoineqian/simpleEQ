@@ -85,11 +85,6 @@ void RotarySliderWithLabels::paint(juce::Graphics &g){
     auto range = getRange();
     auto sliderBounds = getSliderBounds();
     
-//    g.setColour(Colours::red);
-//    g.drawRect(getLocalBounds());
-//    g.setColour(Colours::yellow);
-//    g.drawRect(sliderBounds);
-    
     getLookAndFeel().drawRotarySlider(g,
                                       sliderBounds.getX(),
                                       sliderBounds.getY(),
@@ -119,6 +114,7 @@ void RotarySliderWithLabels::paint(juce::Graphics &g){
         g.drawFittedText(str, r.toNearestInt(), juce::Justification::centred, 1);
     }
 }
+
 juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const {
     auto bounds = getLocalBounds();
     auto size = juce::jmin(bounds.getWidth(), bounds.getHeight());
@@ -131,6 +127,7 @@ juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const {
     r.setY(2);
     return r;
 }
+
 juce::String RotarySliderWithLabels::getDisplayString() const {
     if (auto* choiceParam = dynamic_cast<juce::AudioParameterChoice*>(param)){
         return choiceParam->getCurrentChoiceName();
@@ -157,6 +154,7 @@ juce::String RotarySliderWithLabels::getDisplayString() const {
     
     return str;
 }
+
 PathProducer::PathProducer(SingleChannelSampleFifo<SimpleEQAudioProcessor::BlockType>& channelFifo): leftChannelFifo(&channelFifo){
     leftChannelFFTDataGenerator.changeOrder(FFTOrder::order2048);
     monoBuffer.setSize(1, leftChannelFFTDataGenerator.getFFTSize());
@@ -215,12 +213,13 @@ void PathProducer::process(juce::Rectangle<float> fftBounds, double sampleRate){
     }
 }
 void ResponseCurveComponent::timerCallback(){
-    
-    auto sampleRate = audioProcessor.getSampleRate();
-    auto fftBounds = getAnalysisArea().toFloat();
+    if (showFFTAnalysis){
+        auto sampleRate = audioProcessor.getSampleRate();
+        auto fftBounds = getAnalysisArea().toFloat();
 
-    leftPathProducer.process(fftBounds, sampleRate);
-    rightPathProducer.process(fftBounds, sampleRate);
+        leftPathProducer.process(fftBounds, sampleRate);
+        rightPathProducer.process(fftBounds, sampleRate);
+    }
     
     if (parametersChanged.compareAndSetBool(false, true)){
         updateChain();
@@ -316,23 +315,31 @@ void ResponseCurveComponent::paint (juce::Graphics& g)
     for (size_t i=1; i< mags.size(); ++i){
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
-    auto leftChannelFFTPath = leftPathProducer.getPath();
-    leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY()));
-    g.setColour(Colours::skyblue);
-    g.strokePath(leftChannelFFTPath, PathStrokeType(1.f));
-    
-    auto rightChannelFFTPath = rightPathProducer.getPath();
-    rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY()));
-    
-    g.setColour(Colours::yellow);
-    g.strokePath(rightChannelFFTPath, PathStrokeType(1.f));
-    
     g.setColour (Colours::orange);
     g.drawRoundedRectangle(getRenderArea().toFloat(), 4.f, 1.f);
     
     g.setColour(Colours::white);
     g.strokePath(responseCurve, PathStrokeType(2.f));
+    
+    if (showFFTAnalysis){
+        auto leftChannelFFTPath = leftPathProducer.getPath();
+        leftChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+        g.setColour(Colours::skyblue);
+        g.strokePath(leftChannelFFTPath, PathStrokeType(1.f));
+        
+        auto rightChannelFFTPath = rightPathProducer.getPath();
+        rightChannelFFTPath.applyTransform(AffineTransform().translation(responseArea.getX(), responseArea.getY()));
+        
+        g.setColour(Colours::yellow);
+        g.strokePath(rightChannelFFTPath, PathStrokeType(1.f));
+    }
+    
 }
+
+void ResponseCurveComponent::toggleAnalysisEnablement(bool enabled){
+    showFFTAnalysis = enabled;
+}
+
 void ResponseCurveComponent::resized(){
     using namespace juce;
     background = Image(Image::PixelFormat::RGB, getWidth(), getHeight(), true);
@@ -524,6 +531,14 @@ analyzerEnabledButtonAttachment(audioProcessor.apvts, "Analyzer Enabled", analyz
             comp->highCutSlopeSlider.setEnabled(!bypassed);
         }
     };
+    
+    analyzerEnabledButton.onClick = [safePtr] {
+        if (auto comp = safePtr.getComponent()){
+            auto enabled = comp->analyzerEnabledButton.getToggleState();
+            comp->responseCurveComponent.toggleAnalysisEnablement(enabled);
+        }
+    };
+    
     setSize (600, 480);
 }
 

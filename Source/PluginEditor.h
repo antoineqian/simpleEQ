@@ -166,7 +166,9 @@ struct ResponseCurveComponent : juce::Component, juce::AudioProcessorParameter::
     void timerCallback() override;
     
     void paint(juce::Graphics& g) override;
-    void resized() override;    
+    void resized() override;
+    
+    void toggleAnalysisEnablement(bool enabled);
 private:
     juce::Atomic<bool> parametersChanged {false};
     SimpleEQAudioProcessor& audioProcessor;
@@ -179,11 +181,13 @@ private:
     juce::Rectangle<int> getAnalysisArea();
     
     PathProducer leftPathProducer, rightPathProducer;
+    bool showFFTAnalysis = true;
 };
 
 struct PowerButton : juce::ToggleButton {
     
 };
+
 struct AnalyzerButton : juce::ToggleButton {
     void resized() override{
         auto bounds = getLocalBounds();
